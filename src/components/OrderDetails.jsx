@@ -7,6 +7,7 @@ import { useAuth } from "../state/auth";
 import { formatDateDMY, formatDateTimeDMY } from "../utils/date";
 import { printOrder } from "../utils/printOrder";
 import { printDeliveryNote } from "../utils/printDeliveryNote";
+import { t, stepNames } from "../utils/translations";
 import OrderForm from "./OrderForm";
 
 export default function OrderDetails({ order }) {
@@ -21,6 +22,11 @@ export default function OrderDetails({ order }) {
   const canPassToNext = furthestActiveIdx >= 0 && furthestActiveIdx < steps.length - 1 && steps[furthestActiveIdx + 1] !== "Completed" && steps[furthestActiveIdx] !== "Received";
   const nextStepName = canPassToNext ? steps[furthestActiveIdx + 1] : "";
   const isEnteringPress = nextStepName === "Press";
+
+  const [lang, setLang] = useState("en");
+  const tr = t[lang];
+  const ar = lang === "ar";
+  const stepLabel = (s) => ar ? (stepNames.ar[s] || s) : s;
 
   const [editing, setEditing] = useState(false);
   // "pass" prompt — for activateNextStep
@@ -92,7 +98,7 @@ export default function OrderDetails({ order }) {
   }
 
   return (
-    <div className="order-details">
+    <div className="order-details" dir={ar ? "rtl" : "ltr"}>
       <div className="detail-head">
         <div>
           <h3>
@@ -100,14 +106,14 @@ export default function OrderDetails({ order }) {
             {order.jobName} — {order.customerName}
           </h3>
           <div className="detail-meta">
-            Quantity: {order.quantity} • Product: {order.productType || "N/A"}
+            {tr.quantity}: {order.quantity} • {tr.product}: {order.productType || "N/A"}
           </div>
           {order.printSpecs && (
             <div className="detail-meta">{order.printSpecs}</div>
           )}
           {order.pressMachine && (
             <div className="detail-meta">
-              Press Machine: {order.pressMachine}
+              {tr.pressMachine}: {order.pressMachine}
             </div>
           )}
           {order.linkedOrderId &&
@@ -164,10 +170,19 @@ export default function OrderDetails({ order }) {
               ) : null;
             })()}
         </div>
-        <div className="detail-pill">
-          {activeIndices.length > 0
-            ? activeIndices.map((i) => steps[i]).join(" · ")
-            : steps[steps.length - 1]}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div className="detail-pill">
+            {activeIndices.length > 0
+              ? activeIndices.map((i) => stepLabel(steps[i])).join(" · ")
+              : stepLabel(steps[steps.length - 1])}
+          </div>
+          <button
+            className="button ghost"
+            onClick={() => setLang(lang === "en" ? "ar" : "en")}
+            style={{ fontSize: 12, padding: "4px 10px", fontWeight: 600 }}
+          >
+            {tr.switchLang}
+          </button>
         </div>
       </div>
 
@@ -196,20 +211,20 @@ export default function OrderDetails({ order }) {
               }}
             >
               <span style={{ fontSize: 13, color: "var(--muted)" }}>
-                Job Artwork
+                {tr.jobArtwork}
               </span>
               <button
                 className="button small ghost"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Replace Image
+                {tr.replaceImage}
               </button>
               <button
                 className="button small ghost"
                 style={{ color: "#dc2626" }}
                 onClick={() => removeJobImage(order.id)}
               >
-                Remove
+                {tr.remove}
               </button>
             </div>
           </div>
@@ -220,6 +235,7 @@ export default function OrderDetails({ order }) {
               onClick={() => fileInputRef.current?.click()}
               style={{ display: "flex", alignItems: "center", gap: 6 }}
             >
+              {tr.uploadJobArtwork}
               <svg
                 width="15"
                 height="15"
@@ -249,120 +265,120 @@ export default function OrderDetails({ order }) {
 
       <div className="detail-grid">
         <section className="detail-card">
-          <h4>Customer Information</h4>
+          <h4>{tr.customerInformation}</h4>
           <div className="detail-row">
-            <span>Customer Name</span>
+            <span>{tr.customerName}</span>
             <strong>{order.customerName || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Company Name</span>
+            <span>{tr.companyName}</span>
             <strong>{order.companyName || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Contact Person</span>
+            <span>{tr.contactPerson}</span>
             <strong>{order.contactPerson || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Phone</span>
+            <span>{tr.phone}</span>
             <strong>{order.phone || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Email</span>
+            <span>{tr.email}</span>
             <strong>{order.email || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Address</span>
+            <span>{tr.address}</span>
             <strong>{order.address || "—"}</strong>
           </div>
         </section>
 
         <section className="detail-card">
-          <h4>Job Details</h4>
+          <h4>{tr.jobDetails}</h4>
           <div className="detail-row">
-            <span>Job Name / Project Title</span>
+            <span>{tr.jobName}</span>
             <strong>{order.jobName || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Print Product Type</span>
+            <span>{tr.productType}</span>
             <strong>{order.productType || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Quantity</span>
+            <span>{tr.qty}</span>
             <strong>{order.quantity || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Number of Versions</span>
+            <span>{tr.versions}</span>
             <strong>{order.versions || "—"}</strong>
           </div>
         </section>
 
         <section className="detail-card">
-          <h4>Print Specifications</h4>
+          <h4>{tr.printSpecifications}</h4>
           <p style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
             {order.printSpecs || "—"}
           </p>
         </section>
 
         <section className="detail-card">
-          <h4>Finishing Options</h4>
+          <h4>{tr.finishingOptions}</h4>
           <div className="detail-row">
-            <span>Lamination</span>
+            <span>{tr.lamination}</span>
             <strong>{order.lamination || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Spot UV</span>
-            <strong>{order.spotUV ? "Yes" : "No"}</strong>
+            <span>{tr.spotUV}</span>
+            <strong>{order.spotUV ? tr.yes : tr.no}</strong>
           </div>
           <div className="detail-row">
-            <span>Emboss</span>
-            <strong>{order.emboss ? "Yes" : "No"}</strong>
+            <span>{tr.emboss}</span>
+            <strong>{order.emboss ? tr.yes : tr.no}</strong>
           </div>
           <div className="detail-row">
-            <span>Foil Stamping</span>
-            <strong>{order.foilStamping ? "Yes" : "No"}</strong>
+            <span>{tr.foilStamping}</span>
+            <strong>{order.foilStamping ? tr.yes : tr.no}</strong>
           </div>
           <div className="detail-row">
-            <span>Die Cutting</span>
-            <strong>{order.dieCutting ? "Yes" : "No"}</strong>
+            <span>{tr.dieCutting}</span>
+            <strong>{order.dieCutting ? tr.yes : tr.no}</strong>
           </div>
           <div className="detail-row">
-            <span>Folding</span>
-            <strong>{order.folding ? "Yes" : "No"}</strong>
+            <span>{tr.folding}</span>
+            <strong>{order.folding ? tr.yes : tr.no}</strong>
           </div>
           <div className="detail-row">
-            <span>Binding</span>
+            <span>{tr.binding}</span>
             <strong>{order.binding || "—"}</strong>
           </div>
         </section>
 
         <section className="detail-card">
-          <h4>Delivery & Deadline</h4>
+          <h4>{tr.deliveryDeadline}</h4>
           <div className="detail-row">
-            <span>Required Delivery Date</span>
+            <span>{tr.requiredDeliveryDate}</span>
             <strong>{formatDateDMY(order.deliveryDate)}</strong>
           </div>
           <div className="detail-row">
-            <span>Delivery Method</span>
+            <span>{tr.deliveryMethod}</span>
             <strong>{order.deliveryMethod || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Urgent Job</span>
-            <strong>{order.urgent || "No"}</strong>
+            <span>{tr.urgentJob}</span>
+            <strong>{order.urgent || tr.no}</strong>
           </div>
         </section>
 
         <section className="detail-card">
-          <h4>Approval</h4>
+          <h4>{tr.approval}</h4>
           <div className="detail-row">
-            <span>Customer Signature</span>
+            <span>{tr.customerSignature}</span>
             <strong>{order.customerSignature || "—"}</strong>
           </div>
           <div className="detail-row">
-            <span>Date</span>
+            <span>{tr.date}</span>
             <strong>{formatDateDMY(order.signatureDate)}</strong>
           </div>
           <div className="detail-row">
-            <span>Company Representative</span>
+            <span>{tr.companyRepresentative}</span>
             <strong>{order.companyRepresentative || "—"}</strong>
           </div>
         </section>
@@ -380,32 +396,32 @@ export default function OrderDetails({ order }) {
                   : ""
             }
           >
-            <span className="step-name">{s}</span>
+            <span className="step-name">{stepLabel(s)}</span>
             {statuses[idx] === "active" && idx !== steps.length - 1 && (
-              <span className="badge">In Progress</span>
+              <span className="badge">{tr.inProgress}</span>
             )}
           </li>
         ))}
       </ol>
 
       <div className="history">
-        <h4>History</h4>
+        <h4>{tr.history}</h4>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: "2px solid var(--border, #e5e7eb)" }}>
-              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>#</th>
-              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Stage</th>
-              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Action</th>
-              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Date & Time</th>
-              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Details</th>
+              <th style={{ textAlign: ar ? "right" : "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>#</th>
+              <th style={{ textAlign: ar ? "right" : "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>{tr.stage}</th>
+              <th style={{ textAlign: ar ? "right" : "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>{tr.action}</th>
+              <th style={{ textAlign: ar ? "right" : "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>{tr.dateTime}</th>
+              <th style={{ textAlign: ar ? "right" : "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>{tr.details}</th>
             </tr>
           </thead>
           <tbody>
             {(order.history || []).map((h, i) => {
-              const actionLabel = h.action === "delivery_logged" ? "Delivered" : h.action === "completed" ? "Completed" : "Activated";
+              const actionLabel = h.action === "delivery_logged" ? tr.delivered : h.action === "completed" ? tr.completed : tr.activated;
               const actionColor = h.action === "completed" ? "#22c55e" : h.action === "delivery_logged" ? "#f59e0b" : "var(--accent, #4f7bff)";
               const details = [
-                h.action === "delivery_logged" && `Qty: ${h.quantityDelivered}${h.boxes ? ` · ${h.boxes} boxes` : ""}${h.invoiceNumber ? ` · Invoice #${h.invoiceNumber}` : ""}`,
+                h.action === "delivery_logged" && `${tr.deliveryQty}: ${h.quantityDelivered}${h.boxes ? ` · ${h.boxes} ${tr.boxes}` : ""}${h.invoiceNumber ? ` · ${tr.invoiceNo} ${h.invoiceNumber}` : ""}`,
                 h.pressMachine && `🖨 ${h.pressMachine}`,
                 h.notes,
               ].filter(Boolean);
@@ -422,7 +438,7 @@ export default function OrderDetails({ order }) {
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                     }}>
-                      {steps[h.step] || "—"}
+                      {stepLabel(steps[h.step]) || "—"}
                     </span>
                   </td>
                   <td style={{ padding: "8px 10px" }}>
@@ -457,9 +473,9 @@ export default function OrderDetails({ order }) {
       {(deliveryIsActive || deliveries.length > 0) && (
         <div className="detail-card" style={{ marginTop: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h4 style={{ margin: 0 }}>Deliveries</h4>
+            <h4 style={{ margin: 0 }}>{tr.deliveries}</h4>
             <div style={{ fontSize: 13, color: "var(--text-muted,#888)" }}>
-              Delivered: <strong>{totalDelivered}</strong> / {order.quantity}
+              {tr.deliveredOf}: <strong>{totalDelivered}</strong> / {order.quantity}
             </div>
           </div>
 
@@ -467,11 +483,11 @@ export default function OrderDetails({ order }) {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 12 }}>
               <thead>
                 <tr style={{ borderBottom: "2px solid var(--border,#e5e7eb)" }}>
-                  <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 600 }}>Date</th>
-                  <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 600 }}>Qty</th>
-                  <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 600 }}>Boxes</th>
-                  <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 600 }}>Invoice #</th>
-                  <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 600 }}>Notes</th>
+                  <th style={{ textAlign: ar ? "right" : "left", padding: "4px 8px", fontWeight: 600 }}>{tr.deliveryDate}</th>
+                  <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 600 }}>{tr.deliveryQty}</th>
+                  <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 600 }}>{tr.boxes}</th>
+                  <th style={{ textAlign: ar ? "right" : "left", padding: "4px 8px", fontWeight: 600 }}>{tr.invoiceNo}</th>
+                  <th style={{ textAlign: ar ? "right" : "left", padding: "4px 8px", fontWeight: 600 }}>{tr.notes}</th>
                   <th style={{ padding: "4px 8px" }} />
                 </tr>
               </thead>
@@ -488,7 +504,7 @@ export default function OrderDetails({ order }) {
                         className="button small ghost"
                         onClick={() => printDeliveryNote({ order, delivery: d, companyName, companyLogo })}
                       >
-                        🖨 Note
+                        {tr.printNote}
                       </button>
                     </td>
                   </tr>
@@ -500,7 +516,7 @@ export default function OrderDetails({ order }) {
           {showDeliveryForm ? (
             <form onSubmit={handleLogDelivery} style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end", paddingTop: 8, borderTop: "1px solid var(--border,#e5e7eb)" }}>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, fontWeight: 500, flex: "1 1 120px" }}>
-                Qty Delivered *
+                {tr.qtyDelivered}
                 <input
                   type="number"
                   min="1"
@@ -511,7 +527,7 @@ export default function OrderDetails({ order }) {
                 />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, fontWeight: 500, flex: "1 1 100px" }}>
-                No. of Boxes
+                {tr.noOfBoxes}
                 <input
                   type="number"
                   min="1"
@@ -521,7 +537,7 @@ export default function OrderDetails({ order }) {
                 />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, fontWeight: 500, flex: "1 1 140px" }}>
-                Invoice Number
+                {tr.invoiceNumber}
                 <input
                   value={deliveryForm.invoiceNumber}
                   onChange={(e) => setDF("invoiceNumber", e.target.value)}
@@ -529,7 +545,7 @@ export default function OrderDetails({ order }) {
                 />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, fontWeight: 500, flex: "2 1 200px" }}>
-                Notes
+                {tr.notes}
                 <input
                   value={deliveryForm.notes}
                   onChange={(e) => setDF("notes", e.target.value)}
@@ -538,16 +554,16 @@ export default function OrderDetails({ order }) {
               </label>
               <div style={{ display: "flex", gap: 8, alignSelf: "flex-end" }}>
                 <button type="submit" disabled={submittingDelivery}>
-                  {submittingDelivery ? "Saving…" : "Log Delivery"}
+                  {submittingDelivery ? tr.saving : tr.logDelivery}
                 </button>
                 <button type="button" className="button ghost" onClick={() => setShowDeliveryForm(false)}>
-                  Cancel
+                  {tr.cancel}
                 </button>
               </div>
             </form>
           ) : deliveryIsActive ? (
             <button className="button ghost" onClick={() => setShowDeliveryForm(true)}>
-              + Log Delivery
+              {tr.logDelivery}
             </button>
           ) : null}
         </div>
@@ -557,19 +573,19 @@ export default function OrderDetails({ order }) {
       {showPassPrompt && canPassToNext && (
         <div className="detail-card" style={{ marginTop: 12, padding: 14 }}>
           <h4 style={{ margin: "0 0 8px" }}>
-            Pass to: {nextStepName}
+            {tr.passTo}: {stepLabel(nextStepName)}
           </h4>
           {isEnteringPress && pressMachines.length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 4 }}>
-                Assign Press Machine *
+                {tr.assignPressMachine}
               </label>
               <select
                 value={selectedMachine}
                 onChange={(e) => setSelectedMachine(e.target.value)}
                 style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", fontSize: 14 }}
               >
-                <option value="">Select a machine…</option>
+                <option value="">{tr.selectMachine}</option>
                 {pressMachines.map((m) => (
                   <option key={m.id} value={m.name}>{m.name}</option>
                 ))}
@@ -578,10 +594,10 @@ export default function OrderDetails({ order }) {
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
             <button onClick={handlePass} disabled={isEnteringPress && pressMachines.length > 0 && !selectedMachine}>
-              Confirm
+              {tr.confirm}
             </button>
             <button className="button ghost" onClick={() => { setShowPassPrompt(false); setSelectedMachine(""); }}>
-              Cancel
+              {tr.cancel}
             </button>
           </div>
         </div>
@@ -591,19 +607,19 @@ export default function OrderDetails({ order }) {
       {completeIdx !== null && (
         <div className="detail-card" style={{ marginTop: 12, padding: 14 }}>
           <h4 style={{ margin: "0 0 8px" }}>
-            Mark Complete: {steps[completeIdx]}
+            {tr.markComplete}: {stepLabel(steps[completeIdx])}
           </h4>
           <textarea
-            placeholder="Add notes (optional)…"
+            placeholder={tr.addNotes}
             value={completeNotes}
             onChange={(e) => setCompleteNotes(e.target.value)}
             rows={3}
             style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border)", fontSize: 14, resize: "vertical", fontFamily: "inherit" }}
           />
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button onClick={handleComplete}>Confirm Complete</button>
+            <button onClick={handleComplete}>{tr.confirmComplete}</button>
             <button className="button ghost" onClick={() => { setCompleteIdx(null); setCompleteNotes(""); }}>
-              Cancel
+              {tr.cancel}
             </button>
           </div>
         </div>
@@ -619,10 +635,10 @@ export default function OrderDetails({ order }) {
             className="button ghost"
             onClick={() => setCompleteIdx(i)}
             disabled={completeIdx !== null || showPassPrompt || deliveryIncomplete}
-            title={deliveryIncomplete ? `Still need to deliver ${Number(order.quantity) - totalDelivered} more` : undefined}
+            title={deliveryIncomplete ? `${tr.stillNeedToDeliver} ${Number(order.quantity) - totalDelivered} ${tr.more}` : undefined}
             style={{ marginRight: 8 }}
           >
-            Done: {steps[i]}
+            {tr.done}: {stepLabel(steps[i])}
           </button>
           );
         })}
@@ -631,7 +647,7 @@ export default function OrderDetails({ order }) {
             onClick={() => setShowPassPrompt(true)}
             disabled={showPassPrompt || completeIdx !== null}
           >
-            Pass to {nextStepName}
+            {tr.passTo} {stepLabel(nextStepName)}
           </button>
         )}
         {canManage && statuses[steps.length - 1] !== "completed" && (
@@ -640,7 +656,7 @@ export default function OrderDetails({ order }) {
             onClick={() => setEditing(true)}
             style={{ marginLeft: 8 }}
           >
-            Edit Order
+            {tr.editOrder}
           </button>
         )}
         <button
@@ -648,7 +664,7 @@ export default function OrderDetails({ order }) {
           onClick={() => printOrder({ order, steps, jobImage, companyName, companyLogo })}
           style={{ marginLeft: 8 }}
         >
-          🖨 Print / Save PDF
+          {tr.printSavePDF}
         </button>
       </div>
     </div>
