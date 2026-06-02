@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../state/auth";
+import logo from "../assets/logo.svg";
 
 const departments = ["Design", "Prepress", "Press", "Postpress", "Delivery"];
 
@@ -12,7 +13,7 @@ export default function AppLayout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="logo">PM</div>
+          <img src={logo} alt="PM" style={{ width: 36, height: 36, borderRadius: 8 }} />
           <div>
             <div className="brand-title">PressMan</div>
             <div className="brand-sub">Order Tracker</div>

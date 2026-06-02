@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f7bff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+  <rect width="200" height="200" rx="44" fill="url(#shine)"/>
+
+  <!-- Press roller (top cylinder) -->
+  <rect x="32" y="52" width="136" height="28" rx="14" fill="rgba(255,255,255,0.22)"/>
+  <!-- Roller highlight -->
+  <rect x="32" y="52" width="136" height="10" rx="8" fill="rgba(255,255,255,0.18)"/>
+  <!-- Roller shaft ends -->
+  <rect x="28" y="58" width="12" height="16" rx="4" fill="rgba(255,255,255,0.35)"/>
+  <rect x="160" y="58" width="12" height="16" rx="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Paper lines coming out -->
+  <rect x="52" y="84" width="96" height="5" rx="2.5" fill="rgba(255,255,255,0.5)"/>
+  <rect x="52" y="95" width="96" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/>
+  <rect x="52" y="106" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+
+  <!-- PM text -->
+  <text
+    x="100"
+    y="160"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="44"
+    font-weight="800"
+    fill="white"
+    text-anchor="middle"
+    letter-spacing="-2"
+  >PM</text>
+</svg>
