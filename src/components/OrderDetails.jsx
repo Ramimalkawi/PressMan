@@ -390,63 +390,71 @@ export default function OrderDetails({ order }) {
 
       <div className="history">
         <h4>History</h4>
-        <ul>
-          {(order.history || []).map((h, i) => (
-            <li key={i} style={{ marginBottom: h.notes ? 10 : 4 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  style={{
-                    background: "var(--accent)",
-                    color: "#fff",
-                    borderRadius: 6,
-                    padding: "2px 8px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {h.action === "delivery_logged" ? `${steps[h.step]} ↓` : steps[h.step]}
-                </span>
-                <span style={{ color: "var(--muted)", fontSize: 12 }}>
-                  {formatDateTimeDMY(h.ts)}
-                </span>
-              </div>
-              {(h.notes || h.pressMachine || h.action === "delivery_logged") && (
-                <div
-                  style={{
-                    marginTop: 4,
-                    marginLeft: 4,
-                    paddingLeft: 10,
-                    borderLeft: "2px solid var(--border)",
-                    fontSize: 13,
-                    color: "var(--text)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                  }}
-                >
-                  {h.action === "delivery_logged" && (
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                      Qty: <strong>{h.quantityDelivered}</strong>
-                      {h.boxes ? ` · ${h.boxes} boxes` : ""}
-                      {h.invoiceNumber ? ` · Invoice #${h.invoiceNumber}` : ""}
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid var(--border, #e5e7eb)" }}>
+              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>#</th>
+              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Stage</th>
+              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Action</th>
+              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Date & Time</th>
+              <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: "var(--text-muted, #888)", fontSize: 12 }}>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(order.history || []).map((h, i) => {
+              const actionLabel = h.action === "delivery_logged" ? "Delivered" : h.action === "completed" ? "Completed" : "Activated";
+              const actionColor = h.action === "completed" ? "#22c55e" : h.action === "delivery_logged" ? "#f59e0b" : "var(--accent, #4f7bff)";
+              const details = [
+                h.action === "delivery_logged" && `Qty: ${h.quantityDelivered}${h.boxes ? ` · ${h.boxes} boxes` : ""}${h.invoiceNumber ? ` · Invoice #${h.invoiceNumber}` : ""}`,
+                h.pressMachine && `🖨 ${h.pressMachine}`,
+                h.notes,
+              ].filter(Boolean);
+              return (
+                <tr key={i} style={{ borderBottom: "1px solid var(--border, #f0f0f0)" }}>
+                  <td style={{ padding: "8px 10px", color: "var(--text-muted, #aaa)", fontSize: 12 }}>{i + 1}</td>
+                  <td style={{ padding: "8px 10px" }}>
+                    <span style={{
+                      background: "var(--accent, #4f7bff)",
+                      color: "#fff",
+                      borderRadius: 6,
+                      padding: "2px 8px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}>
+                      {steps[h.step] || "—"}
                     </span>
-                  )}
-                  {h.pressMachine && (
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                      🖨 {h.pressMachine}
+                  </td>
+                  <td style={{ padding: "8px 10px" }}>
+                    <span style={{
+                      background: `${actionColor}22`,
+                      color: actionColor,
+                      borderRadius: 5,
+                      padding: "2px 7px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}>
+                      {actionLabel}
                     </span>
-                  )}
-                  {h.notes && <span>{h.notes}</span>}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                  </td>
+                  <td style={{ padding: "8px 10px", whiteSpace: "nowrap", color: "var(--text-muted, #888)" }}>
+                    {formatDateTimeDMY(h.ts)}
+                  </td>
+                  <td style={{ padding: "8px 10px", color: "var(--text, #333)" }}>
+                    {details.map((d, di) => (
+                      <div key={di} style={{ fontSize: 12, lineHeight: 1.6 }}>{d}</div>
+                    ))}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Delivery log panel */}
-      {deliveryIsActive && (
+      {/* Delivery log panel — visible while active or after completion if deliveries exist */}
+      {(deliveryIsActive || deliveries.length > 0) && (
         <div className="detail-card" style={{ marginTop: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <h4 style={{ margin: 0 }}>Deliveries</h4>
@@ -537,11 +545,11 @@ export default function OrderDetails({ order }) {
                 </button>
               </div>
             </form>
-          ) : (
+          ) : deliveryIsActive ? (
             <button className="button ghost" onClick={() => setShowDeliveryForm(true)}>
               + Log Delivery
             </button>
-          )}
+          ) : null}
         </div>
       )}
 
