@@ -196,6 +196,7 @@ export function OrdersProvider({ children }) {
     const entry = {
       id: Date.now(),
       ts: Date.now(),
+      signToken: crypto.randomUUID(),
       quantityDelivered: Number(quantityDelivered) || 0,
       boxes: boxes ? Number(boxes) : null,
       invoiceNumber: invoiceNumber?.trim() || null,

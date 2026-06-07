@@ -10,6 +10,27 @@ import { printDeliveryNote } from "../utils/printDeliveryNote";
 import { t, stepNames } from "../utils/translations";
 import OrderForm from "./OrderForm";
 
+function CopyLinkButton({ token, signed, signerName }) {
+  const [copied, setCopied] = React.useState(false);
+  const url = `${window.location.origin}/sign/${token}`;
+  const copy = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  if (signed) return (
+    <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 600, whiteSpace: "nowrap", alignSelf: "center" }}>
+      ✓ Signed{signerName ? ` by ${signerName}` : ""}
+    </span>
+  );
+  return (
+    <button className="button small ghost" onClick={copy} style={{ whiteSpace: "nowrap" }}>
+      {copied ? "✓ Copied!" : "🔗 Share Link"}
+    </button>
+  );
+}
+
 export default function OrderDetails({ order }) {
   const { canManage } = useAuth();
   const { activateNextStep, completeStep, logDelivery, getOrderSteps, orders } = useOrders();
@@ -500,12 +521,17 @@ export default function OrderDetails({ order }) {
                     <td style={{ padding: "6px 8px" }}>{d.invoiceNumber || "—"}</td>
                     <td style={{ padding: "6px 8px", color: "var(--text-muted,#888)" }}>{d.notes || "—"}</td>
                     <td style={{ padding: "6px 8px" }}>
-                      <button
-                        className="button small ghost"
-                        onClick={() => printDeliveryNote({ order, delivery: d, companyName, companyLogo })}
-                      >
-                        {tr.printNote}
-                      </button>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          className="button small ghost"
+                          onClick={() => printDeliveryNote({ order, delivery: d, companyName, companyLogo })}
+                        >
+                          {tr.printNote}
+                        </button>
+                        {d.signToken && (
+                          <CopyLinkButton token={d.signToken} signed={!!d.signedAt} signerName={d.signedBy} />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

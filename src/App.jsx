@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./state/auth";
+import DeliverySignPage from "./pages/DeliverySignPage";
 import { OrdersProvider } from "./state/orders";
 import { SettingsProvider } from "./state/settings";
 import { CustomersProvider } from "./state/customers";
@@ -93,6 +94,12 @@ function ProtectedApp() {
 }
 
 export default function App() {
+  // Serve the public sign page without any auth context
+  if (window.location.pathname.startsWith("/sign/")) {
+    const token = window.location.pathname.replace("/sign/", "");
+    return <DeliverySignPage token={token} />;
+  }
+
   return (
     <AuthProvider>
       <ProtectedApp />
