@@ -111,7 +111,11 @@ export function printDeliveryNote({ order, delivery, companyName, companyLogo })
       <div class="sig-label">Delivered by (Signature)</div>
     </div>
     <div class="sig-box">
-      <div class="sig-label">Received by (Signature &amp; Stamp)</div>
+      ${delivery.signature ? `
+        <img src="${delivery.signature}" alt="Customer Signature" style="max-width:220px;max-height:90px;object-fit:contain;display:block;margin-bottom:6px;" />
+        <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:2px;">${delivery.signedBy || ""}</div>
+        <div style="font-size:11px;color:#888;">Signed on: ${fmtDateTime(delivery.signedAt)}</div>
+      ` : `<div class="sig-label">Received by (Signature &amp; Stamp)</div>`}
     </div>
   </div>
 
