@@ -8,6 +8,7 @@ import { formatDateDMY, formatDateTimeDMY } from "../utils/date";
 import { printOrder } from "../utils/printOrder";
 import { printDeliveryNote } from "../utils/printDeliveryNote";
 import { t, stepNames } from "../utils/translations";
+import { useLang } from "../state/lang";
 import OrderForm from "./OrderForm";
 
 function CopyLinkButton({ token, signed, signerName }) {
@@ -44,7 +45,7 @@ export default function OrderDetails({ order }) {
   const nextStepName = canPassToNext ? steps[furthestActiveIdx + 1] : "";
   const isEnteringPress = nextStepName === "Press";
 
-  const [lang, setLang] = useState("en");
+  const { lang } = useLang();
   const tr = t[lang];
   const ar = lang === "ar";
   const stepLabel = (s) => ar ? (stepNames.ar[s] || s) : s;
@@ -197,13 +198,6 @@ export default function OrderDetails({ order }) {
               ? activeIndices.map((i) => stepLabel(steps[i])).join(" · ")
               : stepLabel(steps[steps.length - 1])}
           </div>
-          <button
-            className="button ghost"
-            onClick={() => setLang(lang === "en" ? "ar" : "en")}
-            style={{ fontSize: 12, padding: "4px 10px", fontWeight: 600 }}
-          >
-            {tr.switchLang}
-          </button>
         </div>
       </div>
 
@@ -651,45 +645,103 @@ export default function OrderDetails({ order }) {
         </div>
       )}
 
-      <div className="detail-actions">
+      <div style={{
+        marginTop: 24,
+        padding: "16px 20px",
+        background: "var(--bg, #f8faff)",
+        border: "1px solid var(--border, #e5e7eb)",
+        borderRadius: 14,
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        alignItems: "center",
+      }}>
+        {/* Primary workflow actions */}
         {activeIndices.map((i) => {
           const isDeliveryStep = steps[i] === "Delivery";
           const deliveryIncomplete = isDeliveryStep && totalDelivered < Number(order.quantity);
           return (
-          <button
-            key={i}
-            className="button ghost"
-            onClick={() => setCompleteIdx(i)}
-            disabled={completeIdx !== null || showPassPrompt || deliveryIncomplete}
-            title={deliveryIncomplete ? `${tr.stillNeedToDeliver} ${Number(order.quantity) - totalDelivered} ${tr.more}` : undefined}
-            style={{ marginRight: 8 }}
-          >
-            {tr.done}: {stepLabel(steps[i])}
-          </button>
+            <button
+              key={i}
+              onClick={() => setCompleteIdx(i)}
+              disabled={completeIdx !== null || showPassPrompt || deliveryIncomplete}
+              title={deliveryIncomplete ? `${tr.stillNeedToDeliver} ${Number(order.quantity) - totalDelivered} ${tr.more}` : tr.hint_done}
+              style={{
+                display: "flex", alignItems: "center", gap: 7,
+                padding: "9px 18px", borderRadius: 10, border: "none",
+                background: deliveryIncomplete ? "#f1f5f9" : "linear-gradient(135deg, #22c55e, #16a34a)",
+                color: deliveryIncomplete ? "#94a3b8" : "#fff",
+                fontWeight: 700, fontSize: 13, cursor: deliveryIncomplete ? "not-allowed" : "pointer",
+                boxShadow: deliveryIncomplete ? "none" : "0 2px 8px rgba(34,197,94,0.3)",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              {tr.done}: {stepLabel(steps[i])}
+            </button>
           );
         })}
+
         {canPassToNext && (
           <button
             onClick={() => setShowPassPrompt(true)}
             disabled={showPassPrompt || completeIdx !== null}
+            title={tr.hint_pass}
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "9px 18px", borderRadius: 10, border: "none",
+              background: "linear-gradient(135deg, #4f7bff, #6366f1)",
+              color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(79,123,255,0.3)",
+              opacity: (showPassPrompt || completeIdx !== null) ? 0.5 : 1,
+            }}
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
             {tr.passTo} {stepLabel(nextStepName)}
           </button>
         )}
+
+        {/* Divider if there are workflow actions */}
+        {(activeIndices.length > 0 || canPassToNext) && (canManage || true) && (
+          <div style={{ width: 1, height: 28, background: "var(--border, #e5e7eb)", margin: "0 4px" }} />
+        )}
+
         {canManage && statuses[steps.length - 1] !== "completed" && (
           <button
-            className="button ghost"
             onClick={() => setEditing(true)}
-            style={{ marginLeft: 8 }}
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "9px 16px", borderRadius: 10,
+              border: "1px solid var(--border, #e5e7eb)",
+              background: "#fff", color: "var(--text, #374151)",
+              fontWeight: 600, fontSize: 13, cursor: "pointer",
+            }}
           >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
             {tr.editOrder}
           </button>
         )}
+
         <button
-          className="button ghost"
           onClick={() => printOrder({ order, steps, jobImage, companyName, companyLogo })}
-          style={{ marginLeft: 8 }}
+          style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "9px 16px", borderRadius: 10,
+            border: "1px solid var(--border, #e5e7eb)",
+            background: "#fff", color: "var(--text, #374151)",
+            fontWeight: 600, fontSize: 13, cursor: "pointer",
+          }}
         >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
           {tr.printSavePDF}
         </button>
       </div>

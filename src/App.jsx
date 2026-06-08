@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./state/auth";
+import { LangProvider } from "./state/lang";
 import DeliverySignPage from "./pages/DeliverySignPage";
 import { OrdersProvider } from "./state/orders";
 import { SettingsProvider } from "./state/settings";
@@ -101,8 +102,10 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <ProtectedApp />
-    </AuthProvider>
+    <LangProvider>
+      <AuthProvider>
+        <ProtectedApp />
+      </AuthProvider>
+    </LangProvider>
   );
 }

@@ -3,6 +3,8 @@ import { Navigate, useParams } from "react-router-dom";
 import { useOrders, getStepStatuses } from "../state/orders";
 import { useSettings } from "../state/settings";
 import { useAuth } from "../state/auth";
+import { useLang } from "../state/lang";
+import { t, stepNames } from "../utils/translations";
 import OrderTimeline from "../components/OrderTimeline";
 import OrderDetails from "../components/OrderDetails";
 
@@ -16,7 +18,11 @@ export default function DepartmentPage() {
   }
   const { orders, getOrderSteps } = useOrders();
   const { pressMachines } = useSettings();
+  const { lang } = useLang();
+  const tr = t[lang];
+  const ar = lang === "ar";
   const stepName = dept ? dept.charAt(0).toUpperCase() + dept.slice(1) : "";
+  const stepNameDisplay = ar ? (stepNames.ar[stepName] || stepName) : stepName;
   const isPress = stepName.toLowerCase() === "press";
 
   const visible = orders.filter((o) => {
@@ -38,8 +44,8 @@ export default function DepartmentPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h2>{stepName} Department</h2>
-          <p>Orders currently in this department.</p>
+          <h2>{stepNameDisplay} {tr.dept_suffix}</h2>
+          <p>{tr.dept_sub}</p>
         </div>
       </div>
 
@@ -85,7 +91,7 @@ export default function DepartmentPage() {
 
       <section className="panel">
         {filteredOrders.length === 0 && (
-          <p>No orders {machineFilter ? `on ${machineFilter}` : `in ${stepName}`}.</p>
+          <p>{tr.no_orders} {machineFilter ? `${ar ? "على" : "on"} ${machineFilter}` : `${ar ? "في" : "in"} ${stepNameDisplay}`}.</p>
         )}
         {filteredOrders.map((o) => (
           <div key={o.id} style={{ cursor: "pointer", marginBottom: 4 }}>

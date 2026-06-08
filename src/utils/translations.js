@@ -99,10 +99,42 @@ export const t = {
     confirmComplete: "Confirm Complete",
     addNotes: "Add notes (optional)…",
 
+    // Tooltips
+    hint_done: "Click to finish this stage",
+    hint_pass: "Click to pass to next stage",
+
     // Actions
     done: "Done",
     editOrder: "Edit Order",
     printSavePDF: "🖨 Print / Save PDF",
+
+    // Nav & sidebar
+    nav_orders: "Orders",
+    nav_customers: "Customers",
+    nav_users: "Users",
+    nav_departments: "Departments",
+    nav_settings: "Settings",
+    nav_signOut: "Sign Out",
+
+    // Pages
+    page_orders: "Orders",
+    page_newOrder: "New Order",
+    page_customers: "Customers",
+    page_users: "Team Members",
+    page_settings: "Settings",
+    dept_suffix: "Department",
+    dept_sub: "Orders currently in this department.",
+    no_orders: "No orders",
+
+    // Orders list
+    newOrder: "+ New Order",
+    searchOrders: "Search orders…",
+    allStatuses: "All Statuses",
+    status_active: "Active",
+    status_completed: "Completed",
+    status_received: "Received",
+    orderNumber: "Order #",
+    noOrdersFound: "No orders found.",
 
     // Language toggle
     switchLang: "عربي",
@@ -208,10 +240,42 @@ export const t = {
     confirmComplete: "تأكيد الإتمام",
     addNotes: "أضف ملاحظات (اختياري)…",
 
+    // Tooltips
+    hint_done: "انقر لإنهاء هذه المرحلة",
+    hint_pass: "انقر للتمرير إلى المرحلة التالية",
+
     // Actions
     done: "تم",
     editOrder: "تعديل الطلب",
     printSavePDF: "🖨 طباعة / حفظ PDF",
+
+    // Nav & sidebar
+    nav_orders: "الطلبات",
+    nav_customers: "العملاء",
+    nav_users: "المستخدمون",
+    nav_departments: "الأقسام",
+    nav_settings: "الإعدادات",
+    nav_signOut: "تسجيل الخروج",
+
+    // Pages
+    page_orders: "الطلبات",
+    page_newOrder: "طلب جديد",
+    page_customers: "العملاء",
+    page_users: "أعضاء الفريق",
+    page_settings: "الإعدادات",
+    dept_suffix: "قسم",
+    dept_sub: "الطلبات الموجودة حالياً في هذا القسم.",
+    no_orders: "لا توجد طلبات",
+
+    // Orders list
+    newOrder: "+ طلب جديد",
+    searchOrders: "بحث في الطلبات…",
+    allStatuses: "جميع الحالات",
+    status_active: "نشط",
+    status_completed: "مكتمل",
+    status_received: "مستلم",
+    orderNumber: "طلب #",
+    noOrdersFound: "لا توجد طلبات.",
 
     // Language toggle
     switchLang: "English",
