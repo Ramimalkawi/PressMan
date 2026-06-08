@@ -14,35 +14,12 @@ export default function OrgSetupPage() {
     setLoading(true);
     setError("");
 
-    // Create org
-    const { data: org, error: orgErr } = await supabase
-      .from("organizations")
-      .insert({ name: orgName.trim() })
-      .select()
-      .single();
+    const { error: orgErr } = await supabase.rpc("create_organization", {
+      p_name: orgName.trim(),
+      p_user_id: session.user.id,
+    });
 
     if (orgErr) { setError(orgErr.message); setLoading(false); return; }
-
-    // Link admin profile to org
-    const { error: profErr } = await supabase
-      .from("profiles")
-      .update({ organization_id: org.id })
-      .eq("id", session.user.id);
-
-    if (profErr) { setError(profErr.message); setLoading(false); return; }
-
-    // Also create settings and counter rows for this org
-    await supabase.from("settings").upsert({
-      user_id: session.user.id,
-      organization_id: org.id,
-      company_name: orgName.trim(),
-      press_machines: [],
-    });
-    await supabase.from("order_counter").upsert({
-      user_id: session.user.id,
-      organization_id: org.id,
-      counter: 0,
-    });
 
     await reloadProfile();
     setLoading(false);
