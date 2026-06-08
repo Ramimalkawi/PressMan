@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./state/auth";
 import { LangProvider } from "./state/lang";
 import DeliverySignPage from "./pages/DeliverySignPage";
+import OrderSignPage from "./pages/OrderSignPage";
 import { OrdersProvider } from "./state/orders";
 import { SettingsProvider } from "./state/settings";
 import { CustomersProvider } from "./state/customers";
@@ -95,10 +96,14 @@ function ProtectedApp() {
 }
 
 export default function App() {
-  // Serve the public sign page without any auth context
+  // Serve public sign pages without any auth context
   if (window.location.pathname.startsWith("/sign/")) {
     const token = window.location.pathname.replace("/sign/", "");
     return <DeliverySignPage token={token} />;
+  }
+  if (window.location.pathname.startsWith("/order-sign/")) {
+    const token = window.location.pathname.replace("/order-sign/", "");
+    return <OrderSignPage token={token} />;
   }
 
   return (

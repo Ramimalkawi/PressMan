@@ -105,6 +105,13 @@ export function printOrder({
     .history-section h4 { background: #f3f4f6; padding: 7px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #555; border-bottom: 1px solid #e5e7eb; }
     .history-section table td { font-size: 11px; }
     .badge { background: #4f7bff; color: #fff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .approval-box { display: flex; gap: 20px; padding: 12px; }
+    .sig-block { flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; gap: 6px; }
+    .sig-block .sig-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+    .sig-block .sig-name { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+    .sig-block .sig-date { font-size: 11px; color: #666; }
+    .sig-block img { max-height: 70px; max-width: 100%; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 6px; margin-top: 4px; }
+    .sig-block .sig-line { border-bottom: 1px solid #ccc; height: 50px; margin-top: auto; }
     .footer { margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 12px; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
     @media print {
       body { padding: 16px; }
@@ -182,13 +189,27 @@ export function printOrder({
         ${row("Urgent Job", order.urgent)}
       </table>
     </div>
-    <div class="section">
-      <h4>Approval</h4>
-      <table>
-        ${row("Customer Signature", order.customerSignature)}
-        ${row("Signature Date", fmtDate(order.signatureDate))}
-        ${row("Company Representative", order.companyRepresentative)}
-      </table>
+  </div>
+
+  <div class="section" style="margin-bottom:20px">
+    <h4>Approval & Signatures</h4>
+    <div class="approval-box">
+      <div class="sig-block">
+        <div class="sig-label">Customer Signature</div>
+        ${order.customerSignatureImage
+          ? `<img src="${order.customerSignatureImage}" alt="Customer Signature" /><div class="sig-name">${order.customerSignature || ""}</div><div class="sig-date">${fmtDate(order.signatureDate)}</div>`
+          : `<div class="sig-line"></div><div style="font-size:11px;color:#aaa;margin-top:4px">${order.customerSignature ? order.customerSignature + (order.signatureDate ? " — " + fmtDate(order.signatureDate) : "") : "Signature & Name"}</div>`
+        }
+      </div>
+      <div class="sig-block">
+        <div class="sig-label">Company Representative</div>
+        <div class="sig-line"></div>
+        <div style="font-size:11px;color:#aaa;margin-top:4px">${order.companyRepresentative || "Name & Signature"}</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-label">Company Stamp</div>
+        <div class="sig-line"></div>
+      </div>
     </div>
   </div>
 

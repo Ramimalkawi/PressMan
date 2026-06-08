@@ -91,6 +91,7 @@ export function OrdersProvider({ children }) {
       orderNumber,
       currentStep: 0,
       stepStatuses,
+      orderSignToken: crypto.randomUUID(),
       history: [{ step: 0, ts: Date.now(), action: "activated" }],
     };
 

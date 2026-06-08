@@ -32,6 +32,41 @@ function CopyLinkButton({ token, signed, signerName }) {
   );
 }
 
+function OrderSignLinkButton({ order }) {
+  const { updateOrder } = useOrders();
+  const [copied, setCopied] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+
+  const copy = async () => {
+    let token = order.orderSignToken;
+    if (!token) {
+      setBusy(true);
+      token = crypto.randomUUID();
+      await updateOrder(order.id, { orderSignToken: token });
+      setBusy(false);
+    }
+    const url = `${window.location.origin}/order-sign/${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  if (order.customerSignature && order.customerSignatureImage) {
+    return (
+      <span style={{ fontSize: 12, color: "#22c55e", fontWeight: 600 }}>
+        ✓ Signed by {order.customerSignature}
+        {order.signatureDate ? ` — ${new Date(order.signatureDate).toLocaleDateString("en-GB")}` : ""}
+      </span>
+    );
+  }
+  return (
+    <button className="button small ghost" onClick={copy} disabled={busy} style={{ whiteSpace: "nowrap" }}>
+      {busy ? "…" : copied ? "✓ Copied!" : "🔗 Share Sign Link"}
+    </button>
+  );
+}
+
 export default function OrderDetails({ order }) {
   const { canManage } = useAuth();
   const { activateNextStep, completeStep, logDelivery, getOrderSteps, orders } = useOrders();
@@ -395,6 +430,10 @@ export default function OrderDetails({ order }) {
           <div className="detail-row">
             <span>{tr.companyRepresentative}</span>
             <strong>{order.companyRepresentative || "—"}</strong>
+          </div>
+          <div className="detail-row" style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border, #f0f0f0)" }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted, #888)" }}>Online Signature</span>
+            <OrderSignLinkButton order={order} />
           </div>
         </section>
       </div>
