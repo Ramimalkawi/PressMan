@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useOrders, getStepStatuses } from "../state/orders";
 import { useSettings } from "../state/settings";
@@ -69,9 +69,9 @@ function OrderSignLinkButton({ order }) {
 
 export default function OrderDetails({ order }) {
   const { canManage } = useAuth();
-  const { activateNextStep, completeStep, logDelivery, getOrderSteps, orders } = useOrders();
+  const { activateNextStep, completeStep, logDelivery, getOrderSteps, orders, updateOrder } = useOrders();
   const { pressMachines, companyName, companyLogo } = useSettings();
-  const { getJobImage, setJobImage, removeJobImage } = useJobImages();
+  const { setJobImage, removeJobImage } = useJobImages();
   const steps = getOrderSteps(order);
   const statuses = getStepStatuses(order, steps);
   const activeIndices = steps.map((_, i) => i).filter((i) => statuses[i] === "active");
@@ -94,8 +94,8 @@ export default function OrderDetails({ order }) {
   const [completeNotes, setCompleteNotes] = useState("");
 
   const fileInputRef = useRef(null);
-  const [jobImage, setJobImageUrl] = useState(null);
-  useEffect(() => { getJobImage(order.id).then(setJobImageUrl); }, [order.id]);
+  // Read directly from order data (instant, no async needed)
+  const jobImage = order.jobImage || null;
   const hasDesignActive = activeIndices.some((i) => steps[i] === "Design");
 
   // Delivery step
@@ -122,7 +122,10 @@ export default function OrderDetails({ order }) {
     if (!file) return;
     if (!file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setJobImage(order.id, ev.target.result);
+    reader.onload = (ev) => {
+      setJobImage(order.id, ev.target.result);
+      updateOrder(order.id, { jobImage: ev.target.result });
+    };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
@@ -272,7 +275,7 @@ export default function OrderDetails({ order }) {
               <button
                 className="button small ghost"
                 style={{ color: "#dc2626" }}
-                onClick={() => removeJobImage(order.id)}
+                onClick={() => { removeJobImage(order.id); updateOrder(order.id, { jobImage: null }); }}
               >
                 {tr.remove}
               </button>
