@@ -53,15 +53,12 @@ export default function AdminPanelPage() {
     e.preventDefault();
     setCreatingOrg(true);
     setOrgMsg(""); setOrgError("");
-    const { data, error } = await supabase
-      .from("organizations")
-      .insert({ name: orgName.trim() })
-      .select()
-      .single();
+    const { data: newId, error } = await supabase.rpc("admin_create_organization", { p_name: orgName.trim() });
     if (error) { setOrgError(error.message); setCreatingOrg(false); return; }
-    setOrgs((prev) => [...prev, data]);
+    const newOrg = { id: newId, name: orgName.trim() };
+    setOrgs((prev) => [...prev, newOrg]);
     setOrgName("");
-    setOrgMsg(`Organization "${data.name}" created.`);
+    setOrgMsg(`Organization "${newOrg.name}" created.`);
     setCreatingOrg(false);
   };
 
