@@ -68,8 +68,8 @@ function OrderSignLinkButton({ order }) {
 }
 
 export default function OrderDetails({ order }) {
-  const { canManage } = useAuth();
-  const { activateNextStep, completeStep, logDelivery, getOrderSteps, orders, updateOrder } = useOrders();
+  const { canManage, profile } = useAuth();
+  const { activateNextStep, completeStep, logDelivery, addStageLog, getOrderSteps, orders, updateOrder } = useOrders();
   const { pressMachines, companyName, companyLogo } = useSettings();
   const { setJobImage, removeJobImage } = useJobImages();
   const steps = getOrderSteps(order);
@@ -86,6 +86,18 @@ export default function OrderDetails({ order }) {
   const stepLabel = (s) => ar ? (stepNames.ar[s] || s) : s;
 
   const [editing, setEditing] = useState(false);
+  // Stage logs — one text input per step
+  const [logInputs, setLogInputs] = useState({});
+  const [submittingLog, setSubmittingLog] = useState({});
+  const handleAddLog = async (stepIdx) => {
+    const text = (logInputs[stepIdx] || "").trim();
+    if (!text) return;
+    setSubmittingLog((p) => ({ ...p, [stepIdx]: true }));
+    await addStageLog(order.id, stepIdx, text, profile?.full_name || "");
+    setLogInputs((p) => ({ ...p, [stepIdx]: "" }));
+    setSubmittingLog((p) => ({ ...p, [stepIdx]: false }));
+  };
+
   // "pass" prompt — for activateNextStep
   const [showPassPrompt, setShowPassPrompt] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState("");
@@ -460,6 +472,61 @@ export default function OrderDetails({ order }) {
           </li>
         ))}
       </ol>
+
+      {/* Stage logs — one panel per active (or completed) step that has logs or is active */}
+      {steps.map((s, idx) => {
+        const isActive = statuses[idx] === "active";
+        const logs = (order.stageLogs?.[idx] || []);
+        if (!isActive && logs.length === 0) return null;
+        return (
+          <div key={idx} className="detail-card" style={{ marginTop: 10, padding: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ background: isActive ? "var(--accent,#4f7bff)" : "#e5e7eb", color: isActive ? "#fff" : "#888", borderRadius: 6, padding: "2px 9px", fontSize: 11, fontWeight: 700 }}>
+                {stepLabel(s)}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text,#111)" }}>
+                {ar ? "سجل الأعمال" : "Work Log"}
+              </span>
+              <span style={{ fontSize: 11, color: "#aaa", marginInlineStart: "auto" }}>
+                {logs.length} {ar ? "ملاحظة" : logs.length === 1 ? "note" : "notes"}
+              </span>
+            </div>
+
+            {logs.length > 0 && (
+              <div style={{ marginBottom: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+                {logs.map((log) => (
+                  <div key={log.id} style={{ background: "var(--bg,#f8faff)", border: "1px solid var(--border,#e5e7eb)", borderRadius: 8, padding: "8px 12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 3 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--accent,#4f7bff)" }}>{log.author || "—"}</span>
+                      <span style={{ fontSize: 11, color: "#aaa", whiteSpace: "nowrap" }}>{formatDateTimeDMY(log.ts)}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: "var(--text,#222)", lineHeight: 1.5 }}>{log.text}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {isActive && (
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={logInputs[idx] || ""}
+                  onChange={(e) => setLogInputs((p) => ({ ...p, [idx]: e.target.value }))}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleAddLog(idx)}
+                  placeholder={ar ? "أضف ملاحظة…" : "Add a note…"}
+                  style={{ flex: 1, padding: "8px 11px", borderRadius: 8, border: "1px solid var(--border,#e5e7eb)", fontSize: 13 }}
+                />
+                <button
+                  onClick={() => handleAddLog(idx)}
+                  disabled={submittingLog[idx] || !(logInputs[idx] || "").trim()}
+                  style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, background: "var(--accent,#4f7bff)", color: "#fff", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
+                >
+                  {submittingLog[idx] ? "…" : ar ? "+ إضافة" : "+ Add"}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
 
       <div className="history">
         <h4>{tr.history}</h4>

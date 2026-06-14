@@ -224,6 +224,26 @@ export function OrdersProvider({ children }) {
     if (!error) setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
   };
 
+  // Add a timestamped note to a specific step's log
+  const addStageLog = async (id, stepIndex, text, authorName) => {
+    const existing = orders.find((o) => o.id === id);
+    if (!existing) return;
+
+    const entry = {
+      id: Date.now(),
+      ts: Date.now(),
+      text: text.trim(),
+      author: authorName || "",
+    };
+
+    const stageLogs = { ...(existing.stageLogs || {}) };
+    stageLogs[stepIndex] = [...(stageLogs[stepIndex] || []), entry];
+
+    const updated = { ...existing, stageLogs };
+    const { error } = await supabase.from("orders").update({ data: updated }).eq("id", id);
+    if (!error) setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
+  };
+
   // Keep advanceStep for any legacy calls — maps to activateNextStep
   const advanceStep = (id, notes, pressMachine) => {
     const existing = orders.find((o) => o.id === id);
@@ -241,7 +261,7 @@ export function OrdersProvider({ children }) {
   return (
     <OrdersContext.Provider value={{
       orders, loading, addOrder, updateOrder,
-      activateNextStep, completeStep, advanceStep, logDelivery,
+      activateNextStep, completeStep, advanceStep, logDelivery, addStageLog,
       steps, allDepartments, getOrderSteps, getStepStatuses,
     }}>
       {children}
