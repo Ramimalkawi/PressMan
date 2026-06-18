@@ -10,6 +10,7 @@ import { printDeliveryNote } from "../utils/printDeliveryNote";
 import { t, stepNames } from "../utils/translations";
 import { useLang } from "../state/lang";
 import OrderForm from "./OrderForm";
+import pressMachineIcon from "../assets/press-machine.png";
 
 function CopyLinkButton({ token, signed, signerName }) {
   const [copied, setCopied] = React.useState(false);
@@ -382,6 +383,40 @@ export default function OrderDetails({ order }) {
           <p style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
             {order.printSpecs || "—"}
           </p>
+        </section>
+
+        <section className="detail-card">
+          <h4 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img src={pressMachineIcon} alt="" style={{ width: 24, height: 24, objectFit: "contain" }} />
+            {tr.pressDetails}
+          </h4>
+          {order.pressProcess?.length > 0 && (
+            <div className="detail-row">
+              <span>{tr.pressProcess}</span>
+              <strong>{order.pressProcess.join(", ")}</strong>
+            </div>
+          )}
+          {order.pressMachine && (
+            <div className="detail-row">
+              <span>{tr.pressMachine}</span>
+              <strong>{order.pressMachine}</strong>
+            </div>
+          )}
+          {order.numberOfColors && (
+            <div className="detail-row">
+              <span>{tr.numberOfColors}</span>
+              <strong>{order.numberOfColors}</strong>
+            </div>
+          )}
+          {order.pressNotes && (
+            <div className="detail-row" style={{ flexDirection: "column", gap: 4 }}>
+              <span>{tr.pressMoreDetails}</span>
+              <strong style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{order.pressNotes}</strong>
+            </div>
+          )}
+          {!order.pressProcess?.length && !order.pressMachine && !order.numberOfColors && !order.pressNotes && (
+            <p style={{ margin: 0, color: "var(--muted)" }}>—</p>
+          )}
         </section>
 
         <section className="detail-card">

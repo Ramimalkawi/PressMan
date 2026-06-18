@@ -2,6 +2,7 @@ import React from "react";
 import { useOrders, getStepStatuses } from "../state/orders";
 import { useJobImages } from "../state/jobImages";
 import { formatDateTimeDMY } from "../utils/date";
+import pressMachineIcon from "../assets/press-machine.png";
 
 export default function OrderTimeline({ order }) {
   const { getOrderSteps } = useOrders();
@@ -46,7 +47,10 @@ export default function OrderTimeline({ order }) {
         <div className="meta">
           Qty: {order.quantity}
           {order.pressMachine && (
-            <span style={{ marginLeft: 8 }}>🖨 {order.pressMachine}</span>
+            <span style={{ marginLeft: 8, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <img src={pressMachineIcon} alt="" style={{ width: 16, height: 16, objectFit: "contain" }} />
+              {order.pressMachine}
+            </span>
           )}
         </div>
       </div>

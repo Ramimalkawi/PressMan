@@ -166,13 +166,33 @@ export function OrdersProvider({ children }) {
     // If the next step is the last ("Completed"), mark it completed immediately
     const nextIndex = stepIndex + 1;
     const historyEntries = [historyEntry];
-    if (nextIndex < orderSteps.length && newStatuses[nextIndex] === "pending") {
+    if (nextIndex < orderSteps.length) {
+      const nextStatus = newStatuses[nextIndex] ?? newStatuses[String(nextIndex)];
       const isLastStep = nextIndex === orderSteps.length - 1;
-      newStatuses[nextIndex] = isLastStep ? "completed" : "active";
-      historyEntries.push({ step: nextIndex, ts: Date.now(), action: isLastStep ? "completed" : "activated" });
+      if (nextStatus === "pending" || nextStatus === undefined) {
+        newStatuses[nextIndex] = isLastStep ? "completed" : "active";
+        historyEntries.push({ step: nextIndex, ts: Date.now(), action: isLastStep ? "completed" : "activated" });
+      }
     }
 
-    const allDone = orderSteps.every((_, i) => newStatuses[i] === "completed");
+    // Ensure "Completed" step is always marked completed when all other steps are done
+    const lastIdx = orderSteps.length - 1;
+    const allMiddleDone = orderSteps.slice(0, lastIdx).every((_, i) => {
+      const s = newStatuses[i] ?? newStatuses[String(i)];
+      return s === "completed";
+    });
+    if (allMiddleDone) {
+      const lastStatus = newStatuses[lastIdx] ?? newStatuses[String(lastIdx)];
+      if (lastStatus !== "completed") {
+        newStatuses[lastIdx] = "completed";
+        historyEntries.push({ step: lastIdx, ts: Date.now(), action: "completed" });
+      }
+    }
+
+    const allDone = orderSteps.every((_, i) => {
+      const s = newStatuses[i] ?? newStatuses[String(i)];
+      return s === "completed";
+    });
 
     const updated = {
       ...existing,
