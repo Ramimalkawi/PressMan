@@ -12,6 +12,58 @@ import { useLang } from "../state/lang";
 import OrderForm from "./OrderForm";
 import pressMachineIcon from "../assets/press-machine.png";
 
+/* ── Detail section card — mirrors OrderForm's SectionCard ── */
+function DetailSection({ icon, title, accent = "#4f7bff", children }) {
+  return (
+    <div style={{
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: 14,
+      overflow: "hidden",
+      boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "12px 18px",
+        borderBottom: "1px solid #f0f0f0",
+        background: `linear-gradient(135deg, ${accent}08 0%, #fff 100%)`,
+        borderLeft: `4px solid ${accent}`,
+      }}>
+        <span style={{ fontSize: 17, lineHeight: 1 }}>{icon}</span>
+        <h4 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1a2e", letterSpacing: 0.2 }}>{title}</h4>
+      </div>
+      <div style={{ padding: "14px 18px" }}>{children}</div>
+    </div>
+  );
+}
+
+/* ── Label / value row ── */
+function DRow({ label, value, full }) {
+  if (value === null || value === undefined || value === "" || value === false) return null;
+  return (
+    <div style={{
+      display: "flex", flexDirection: full ? "column" : "row",
+      justifyContent: "space-between", gap: full ? 4 : 10,
+      padding: "6px 0", borderBottom: "1px dashed #f0f2f7",
+    }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 0.4, whiteSpace: "nowrap" }}>{label}</span>
+      <strong style={{ fontSize: 13, color: "#1f2937", textAlign: full ? "left" : "right", maxWidth: full ? "100%" : "65%", wordBreak: "break-word" }}>{value}</strong>
+    </div>
+  );
+}
+
+/* ── Tag chip ── */
+function Tag({ label, color = "#4f7bff" }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center",
+      padding: "3px 10px", borderRadius: 999,
+      background: `${color}18`, color,
+      fontSize: 11, fontWeight: 700, border: `1px solid ${color}30`,
+    }}>{label}</span>
+  );
+}
+
 function CopyLinkButton({ token, signed, signerName }) {
   const [copied, setCopied] = React.useState(false);
   const url = `${window.location.origin}/sign/${token}`;
@@ -189,58 +241,50 @@ export default function OrderDetails({ order }) {
               {tr.pressMachine}: {order.pressMachine}
             </div>
           )}
-          {order.linkedOrderId &&
-            (() => {
-              const linked = orders.find(
-                (o) => String(o.id) === String(order.linkedOrderId),
-              );
-              return linked ? (
-                <div
-                  style={{
-                    marginTop: 10,
-                    padding: "8px 12px",
-                    background: "var(--bg-muted, #f0f4ff)",
-                    border: "1px solid var(--accent-light, #c7d7ff)",
-                    borderLeft: "3px solid var(--accent, #4f7bff)",
-                    borderRadius: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>🔗</span>
-                  <span
-                    style={{ color: "var(--text-muted, #666)", fontSize: 13 }}
-                  >
-                    {order.linkedReason
-                      ? order.linkedReason + " of"
-                      : "Linked to"}
-                  </span>
-                  <Link
-                    to={`/orders/${linked.id}`}
-                    style={{
-                      color: "var(--accent, #4f7bff)",
-                      fontWeight: 600,
-                      textDecoration: "none",
-                      fontSize: 14,
-                    }}
-                  >
-                    #{linked.orderNumber} — {linked.jobName}
-                  </Link>
-                  {linked.history?.[0]?.ts && (
-                    <span
-                      style={{
-                        color: "var(--text-muted, #888)",
-                        fontSize: 12,
-                        marginLeft: "auto",
-                      }}
-                    >
-                      Ordered {formatDateDMY(linked.history[0].ts)}
-                    </span>
-                  )}
+          {order.linkedOrderId && (() => {
+              // Build the full chain by walking linkedOrderId links
+              const chain = [];
+              const seen = new Set();
+              let current = order;
+              while (current?.linkedOrderId && !seen.has(String(current.linkedOrderId))) {
+                seen.add(String(current.linkedOrderId));
+                const next = orders.find((o) => String(o.id) === String(current.linkedOrderId));
+                if (!next) break;
+                chain.push({ order: next, reason: current.linkedReason });
+                current = next;
+              }
+              if (!chain.length) return null;
+              return (
+                <div style={{ marginTop: 10, borderRadius: 8, border: "1px solid #c7d7ff", overflow: "hidden" }}>
+                  {chain.map(({ order: o, reason }, idx) => (
+                    <div key={o.id} style={{
+                      display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                      padding: "7px 12px",
+                      background: idx === 0 ? "#f0f4ff" : "#f8faff",
+                      borderTop: idx > 0 ? "1px solid #dce8ff" : "none",
+                      borderLeft: `3px solid ${idx === 0 ? "#4f7bff" : "#a5b4fc"}`,
+                    }}>
+                      <span style={{ fontSize: 13, color: "#9ca3af", minWidth: 16 }}>
+                        {idx === 0 ? "🔗" : "↳"}
+                      </span>
+                      {reason && (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "#6366f1", background: "#eef2ff", padding: "2px 7px", borderRadius: 999 }}>
+                          {reason}
+                        </span>
+                      )}
+                      <Link to={`/orders/${o.id}`} style={{ color: "#4f7bff", fontWeight: 600, textDecoration: "none", fontSize: 13 }}>
+                        #{o.orderNumber} — {o.jobName}
+                      </Link>
+                      <span style={{ fontSize: 11, color: "#9ca3af" }}>{o.customerName}</span>
+                      {o.history?.[0]?.ts && (
+                        <span style={{ fontSize: 11, color: "#9ca3af", marginInlineStart: "auto" }}>
+                          {formatDateDMY(o.history[0].ts)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ) : null;
+              );
             })()}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -330,162 +374,82 @@ export default function OrderDetails({ order }) {
       </div>
 
       <div className="detail-grid">
-        <section className="detail-card">
-          <h4>{tr.customerInformation}</h4>
-          <div className="detail-row">
-            <span>{tr.customerName}</span>
-            <strong>{order.customerName || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.companyName}</span>
-            <strong>{order.companyName || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.contactPerson}</span>
-            <strong>{order.contactPerson || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.phone}</span>
-            <strong>{order.phone || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.email}</span>
-            <strong>{order.email || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.address}</span>
-            <strong>{order.address || "—"}</strong>
-          </div>
-        </section>
 
-        <section className="detail-card">
-          <h4>{tr.jobDetails}</h4>
-          <div className="detail-row">
-            <span>{tr.jobName}</span>
-            <strong>{order.jobName || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.productType}</span>
-            <strong>{order.productType || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.qty}</span>
-            <strong>{order.quantity || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.versions}</span>
-            <strong>{order.versions || "—"}</strong>
-          </div>
-        </section>
+        {/* ── Customer ── */}
+        <DetailSection icon="👤" title={tr.customerInformation} accent="#4f7bff">
+          <DRow label={tr.customerName}       value={order.customerName} />
+          <DRow label={tr.companyName}        value={order.companyName} />
+          <DRow label={tr.contactPerson}      value={order.contactPerson} />
+          <DRow label={tr.phone}              value={order.phone} />
+          <DRow label={tr.email}              value={order.email} />
+          <DRow label={tr.address}            value={order.address} />
+        </DetailSection>
 
-        <section className="detail-card">
-          <h4>{tr.printSpecifications}</h4>
-          <p style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-            {order.printSpecs || "—"}
-          </p>
-        </section>
+        {/* ── Job Details ── */}
+        <DetailSection icon="📋" title={tr.jobDetails} accent="#8b5cf6">
+          <DRow label={tr.jobName}     value={order.jobName} />
+          <DRow label={tr.productType} value={order.productType} />
+          <DRow label={tr.qty}         value={order.quantity} />
+          <DRow label={tr.versions}    value={order.versions} />
+        </DetailSection>
 
-        <section className="detail-card">
-          <h4 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={pressMachineIcon} alt="" style={{ width: 24, height: 24, objectFit: "contain" }} />
-            {tr.pressDetails}
-          </h4>
+        {/* ── Print Specifications ── */}
+        <DetailSection icon="🖨️" title={tr.printSpecifications} accent="#0ea5e9">
+          {order.printSpecs
+            ? <p style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.7, fontSize: 13, color: "#374151" }}>{order.printSpecs}</p>
+            : <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
+          }
+        </DetailSection>
+
+        {/* ── Press Details ── */}
+        <DetailSection
+          icon={<img src={pressMachineIcon} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />}
+          title={tr.pressDetails} accent="#f59e0b"
+        >
           {order.pressProcess?.length > 0 && (
-            <div className="detail-row">
-              <span>{tr.pressProcess}</span>
-              <strong>{order.pressProcess.join(", ")}</strong>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+              {order.pressProcess.map((p) => <Tag key={p} label={p} color="#f59e0b" />)}
             </div>
           )}
-          {order.pressMachine && (
-            <div className="detail-row">
-              <span>{tr.pressMachine}</span>
-              <strong>{order.pressMachine}</strong>
-            </div>
-          )}
-          {order.numberOfColors && (
-            <div className="detail-row">
-              <span>{tr.numberOfColors}</span>
-              <strong>{order.numberOfColors}</strong>
-            </div>
-          )}
-          {order.pressNotes && (
-            <div className="detail-row" style={{ flexDirection: "column", gap: 4 }}>
-              <span>{tr.pressMoreDetails}</span>
-              <strong style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{order.pressNotes}</strong>
-            </div>
-          )}
+          <DRow label={tr.pressMachine}    value={order.pressMachine} />
+          <DRow label={tr.numberOfColors}  value={order.numberOfColors} />
+          <DRow label={tr.pressMoreDetails} value={order.pressNotes} full />
           {!order.pressProcess?.length && !order.pressMachine && !order.numberOfColors && !order.pressNotes && (
-            <p style={{ margin: 0, color: "var(--muted)" }}>—</p>
+            <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
           )}
-        </section>
+        </DetailSection>
 
-        <section className="detail-card">
-          <h4>{tr.finishingOptions}</h4>
-          <div className="detail-row">
-            <span>{tr.lamination}</span>
-            <strong>{order.lamination || "—"}</strong>
+        {/* ── Finishing Options ── */}
+        <DetailSection icon="✨" title={tr.finishingOptions} accent="#ec4899">
+          <DRow label={tr.lamination}   value={order.lamination} />
+          <DRow label={tr.binding}      value={order.binding} />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {order.spotUV      && <Tag label={tr.spotUV}      color="#ec4899" />}
+            {order.emboss      && <Tag label={tr.emboss}      color="#ec4899" />}
+            {order.foilStamping && <Tag label={tr.foilStamping} color="#ec4899" />}
+            {order.dieCutting  && <Tag label={tr.dieCutting}  color="#ec4899" />}
+            {order.folding     && <Tag label={tr.folding}     color="#ec4899" />}
           </div>
-          <div className="detail-row">
-            <span>{tr.spotUV}</span>
-            <strong>{order.spotUV ? tr.yes : tr.no}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.emboss}</span>
-            <strong>{order.emboss ? tr.yes : tr.no}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.foilStamping}</span>
-            <strong>{order.foilStamping ? tr.yes : tr.no}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.dieCutting}</span>
-            <strong>{order.dieCutting ? tr.yes : tr.no}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.folding}</span>
-            <strong>{order.folding ? tr.yes : tr.no}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.binding}</span>
-            <strong>{order.binding || "—"}</strong>
-          </div>
-        </section>
+        </DetailSection>
 
-        <section className="detail-card">
-          <h4>{tr.deliveryDeadline}</h4>
-          <div className="detail-row">
-            <span>{tr.requiredDeliveryDate}</span>
-            <strong>{formatDateDMY(order.deliveryDate)}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.deliveryMethod}</span>
-            <strong>{order.deliveryMethod || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.urgentJob}</span>
-            <strong>{order.urgent || tr.no}</strong>
-          </div>
-        </section>
+        {/* ── Delivery & Deadline ── */}
+        <DetailSection icon="🚚" title={tr.deliveryDeadline} accent="#f97316">
+          <DRow label={tr.requiredDeliveryDate} value={formatDateDMY(order.deliveryDate)} />
+          <DRow label={tr.deliveryMethod}       value={order.deliveryMethod} />
+          <DRow label={tr.urgentJob}            value={order.urgent === "Yes" ? <Tag label={tr.yes} color="#ef4444" /> : tr.no} />
+        </DetailSection>
 
-        <section className="detail-card">
-          <h4>{tr.approval}</h4>
-          <div className="detail-row">
-            <span>{tr.customerSignature}</span>
-            <strong>{order.customerSignature || "—"}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.date}</span>
-            <strong>{formatDateDMY(order.signatureDate)}</strong>
-          </div>
-          <div className="detail-row">
-            <span>{tr.companyRepresentative}</span>
-            <strong>{order.companyRepresentative || "—"}</strong>
-          </div>
-          <div className="detail-row" style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border, #f0f0f0)" }}>
-            <span style={{ fontSize: 12, color: "var(--text-muted, #888)" }}>Online Signature</span>
+        {/* ── Approval ── */}
+        <DetailSection icon="✍️" title={tr.approval} accent="#6366f1">
+          <DRow label={tr.customerSignature}    value={order.customerSignature} />
+          <DRow label={tr.date}                 value={formatDateDMY(order.signatureDate)} />
+          <DRow label={tr.companyRepresentative} value={order.companyRepresentative} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, marginTop: 4, borderTop: "1px dashed #f0f2f7" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 0.4 }}>Online Signature</span>
             <OrderSignLinkButton order={order} />
           </div>
-        </section>
+        </DetailSection>
+
       </div>
 
       <ol className="steps">
@@ -873,7 +837,7 @@ export default function OrderDetails({ order }) {
         )}
 
         <button
-          onClick={() => printOrder({ order, steps, jobImage, companyName, companyLogo })}
+          onClick={() => printOrder({ order, steps, jobImage, companyName, companyLogo, lang })}
           style={{
             display: "flex", alignItems: "center", gap: 7,
             padding: "9px 16px", borderRadius: 10,
